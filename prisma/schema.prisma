@@ -1,0 +1,187 @@
+generator client {
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  name         String     @default("Admin")
+  role         String     @default("admin")
+  createdAt    DateTime   @default(now())
+  adminLogs    AdminLog[]
+
+  @@index([email])
+}
+
+model Product {
+  id              String         @id @default(cuid())
+  type            String         @default("track")
+  title           String
+  slug            String         @unique
+  description     String?        @db.Text
+  genre           String?
+  style           String?
+  price           Float          @default(0)
+  currency        String         @default("USD")
+  artworkUrl      String?
+  audioPreviewUrl String?
+  downloadUrl     String?
+  lyrics          String?        @db.Text
+  story           String?        @db.Text
+  releaseDate     DateTime?
+  playCount       Int            @default(0)
+  purchaseCount   Int            @default(0)
+  featured        Boolean        @default(false)
+  published       Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  tracks          ProductTrack[]
+  orders          Order[]
+
+  @@index([slug])
+  @@index([type])
+  @@index([published])
+  @@index([featured])
+}
+
+model ProductTrack {
+  id          String  @id @default(cuid())
+  productId   String
+  trackNumber Int
+  title       String
+  duration    String?
+  audioUrl    String?
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  productId     String?
+  buyerEmail    String
+  buyerName     String?
+  amount        Float
+  currency      String   @default("USD")
+  status        String   @default("pending")
+  paypalOrderId String?  @unique
+  downloadToken String?  @unique
+  tokenExpiry   DateTime?
+  type          String   @default("product")
+  createdAt     DateTime @default(now())
+  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([buyerEmail])
+  @@index([paypalOrderId])
+  @@index([downloadToken])
+  @@index([status])
+}
+
+model Donation {
+  id                   String   @id @default(cuid())
+  donorNickname        String?
+  donorEmail           String?
+  amount               Float
+  currency             String   @default("EUR")
+  type                 String   @default("one-time")
+  paypalSubscriptionId String?
+  paypalPayerId        String?
+  paypalOrderId        String?  @unique
+  status               String   @default("completed")
+  createdAt            DateTime @default(now())
+
+  @@index([donorNickname])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  name      String
+  message   String   @db.Text
+  email     String?
+  approved  Boolean  @default(false)
+  adminNote String?  @db.Text
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([approved])
+  @@index([createdAt])
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?  @db.Text
+  date         DateTime
+  externalLink String?
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([date])
+  @@index([published])
+}
+
+model Subscriber {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  confirmed        Boolean  @default(false)
+  confirmToken     String?  @unique
+  unsubscribeToken String?  @unique
+  createdAt        DateTime @default(now())
+
+  @@index([email])
+  @@index([confirmed])
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @db.Text
+
+  @@index([key])
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  details   String?  @db.Text
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model BlockedIP {
+  id           String    @id @default(cuid())
+  ipAddress    String
+  reason       String?
+  blockedUntil DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([ipAddress])
+}
+
+model FailedLogin {
+  id          String   @id @default(cuid())
+  ipAddress   String
+  email       String?
+  attempts    Int      @default(1)
+  lastAttempt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([ipAddress])
+  @@index([lastAttempt])
+}
