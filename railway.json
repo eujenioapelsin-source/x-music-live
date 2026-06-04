@@ -1,6 +1,5 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npx prisma generate && next build"
+    "builder": "nixpacks"
   }
 }
