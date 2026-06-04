@@ -1,9 +1,6 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "yarn install --frozen-lockfile && yarn build"
-  },
-  "env": {
-    "NODE_VERSION": "20.x"
+    "buildCommand": "npx prisma generate && next build"
   }
 }
