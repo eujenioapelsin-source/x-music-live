@@ -5,6 +5,5 @@ RUN yarn install
 COPY . .
 RUN npx prisma generate
 RUN yarn build
-ENV PORT=8080
-EXPOSE $PORT
-CMD ["sh", "-c", "yarn start -p $PORT -H 0.0.0.0"]
+EXPOSE 8080
+CMD ["sh", "-c", "yarn start -p 8080 -H 0.0.0.0"]
